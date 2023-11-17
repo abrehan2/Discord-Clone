@@ -7,3 +7,79 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+// PROFILE -
+model Profile {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @unique
+  name      String
+  imageUrl  String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  members   Member[]
+  servers   Server[]
+  channels  Channel[]
+}
+
+// SERVER -
+model Server {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  imageUrl   String
+  inviteCode String
+  profileId  String    @db.ObjectId
+  profile    Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  members    Member[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  channels   Channel[]
+
+  @@index([profileId])
+}
+
+// ROLES -
+enum MemberRole {
+  ADMIN
+  MODERATOR
+  GUEST
+}
+
+// MEMBER -
+model Member {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  role      MemberRole @default(GUEST)
+  profileId String     @db.ObjectId
+  profile   Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  serverId  String     @db.ObjectId
+  server    Server     @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([profileId])
+  @@index([serverId])
+}
+
+// you can create a compound index on both serverId and profileId for the Member model in Prisma with MongoDB as the database. This will improve query performance when filtering or sorting based on these two fields together.
+
+// When you add separate indexes for serverId and profileId, each index will be used independently for queries that involve the respective field. However, if you create a compound index, MongoDB will use this index for queries that involve both serverId and profileId, which can be more efficient than using two separate indexes.
+
+enum ChannelType {
+  TEXT
+  AUDIO
+  VIDEO
+}
+
+model Channel {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  profileId String   @db.ObjectId
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  serverId  String   @db.ObjectId
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([serverId])
+}
