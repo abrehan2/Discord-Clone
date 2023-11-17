@@ -83,3 +83,5 @@ model Channel {
   @@index([profileId])
   @@index([serverId])
 }
+
+// npx prisma generate and npx prisma db push: run this command everytime you modify your schema
