@@ -1,1 +1,1 @@
-> Project in making..
+> Project in making
